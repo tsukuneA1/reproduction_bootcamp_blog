@@ -26,35 +26,38 @@ class Api::V1::BlogsController < ApplicationController
   end
 
   def create
-    title = params[:title]
-    content = params[:content]
+  title = params[:title]
+  content = params[:content]
 
-    if title.blank? || content.blank?
-      return render json: { error: "Title and content are required." }, status: :bad_request
-    end
-
-    blog = Blog.new(
-      title: title,
-      content: content,
-      author_id: @first_user.id
-    )
-
-    if blog.save
-      render json: {
-        id: blog.id,
-        title: blog.title,
-        content: blog.content,
-        is_published: blog.is_published,
-        created_at: blog.created_at,
-        author: {
-          name: blog.author.name,
-          image: blog.author.image
-        }
-      }, status: :created
-    else
-      render json: { error: blog.errors.full_messages }, status: :unprocessable_entity
-    end
+  if title.blank? || content.blank?
+    return render json: { error: "Title and content are required." }, status: :bad_request
   end
+
+  blog = Blog.new(
+    id: SecureRandom.uuid,
+    title: title,
+    content: content,
+    author_id: @first_user.id,
+    is_published: true
+  )
+
+  if blog.save
+    render json: {
+      id: blog.id,
+      title: blog.title,
+      content: blog.content,
+      is_published: blog.is_published,
+      created_at: blog.created_at,
+      author: {
+        name: blog.author.name,
+        image: blog.author.image
+      }
+    }, status: :created
+  else
+    render json: { error: blog.errors.full_messages }, status: :unprocessable_entity
+  end
+end
+
 
   def show
     blog = Blog.includes(:author).find_by(id: params[:id], is_published: true)
